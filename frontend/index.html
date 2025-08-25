@@ -1,0 +1,2002 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎨 Figma to Stencil Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #fdf2f7 0%, #d2006e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #160f41, #d2006e);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .navigation {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .nav-item {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-right: 1px solid #dee2e6;
+        }
+
+        .nav-item:last-child {
+            border-right: none;
+        }
+
+        .nav-item.active {
+            background: white;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .nav-item:hover {
+            background: #e9ecef;
+        }
+
+        .content {
+            padding: 2rem;
+            min-height: 400px;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .breadcrumb {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .breadcrumb span {
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        /* Estilos para el selector de componentes */
+        .component-actions {
+            margin: 20px 0;
+        }
+        
+        .btn-primary {
+            background: #d2006e !important;
+            /* background: linear-gradient(45deg, #667eea, #764ba2); */
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #fdf2f7;
+            color: #d2006e;
+            border: 1px solid #ddd;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+        
+        .btn-primary:disabled,
+        .btn-secondary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            border-color: #667eea;
+        }
+
+        .card h3 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .card p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .card .meta {
+            color: #999;
+            font-size: 0.8rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #fdf2f7;
+            color: #d2006e;
+            border: 2px solid #fdf2f7;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .loading::before {
+            content: "⏳";
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 1rem;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid #c3e6cb;
+        }
+
+        .back-button {
+            background: #6c757d;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+
+        .back-button:hover {
+            background: #5a6268;
+        }
+
+        .frame-card {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .frame-card h4 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .frame-card .dimensions {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .input-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin: 2rem 0;
+            border: 2px solid #e9ecef;
+        }
+
+        .input-form input {
+            width: 100%;
+            padding: 12px;
+            margin: 1rem 0;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .input-form input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .info-box {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .project-card {
+            background: #f0f8ff;
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            background: #e6f0ff;
+        }
+
+        .team-section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .team-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .team-icon {
+            font-size: 1.8rem;
+            margin-right: 1rem;
+            color: #667eea;
+        }
+
+        .team-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Nuevos estilos para la visualización de contenidos del archivo */
+        .file-details-container {
+            margin-top: 20px;
+        }
+        
+        .file-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .file-header-icon {
+            font-size: 2rem;
+            margin-right: 15px;
+            color: #667eea;
+        }
+        
+        .file-header-info {
+            flex: 1;
+        }
+        
+        .file-header-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .file-header-meta {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .content-tabs {
+            display: flex;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+        
+        .content-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .content-tab.active {
+            border-bottom-color: #667eea;
+            font-weight: 600;
+        }
+        
+        .content-panel {
+            display: none;
+        }
+        
+        .content-panel.active {
+            display: block;
+        }
+        
+        .component-card {
+            padding: 15px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .component-card:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-color: #667eea;
+        }
+        
+        .style-pill {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            font-size: 0.8rem;
+            color: white;
+            background: #667eea;
+        }
+        
+        .color-sample {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 8px;
+            vertical-align: middle;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .tree-view {
+            font-family: monospace;
+            margin-left: 0;
+            padding-left: 0;
+        }
+        
+        .tree-view ul {
+            margin-left: 20px;
+            padding-left: 0;
+            list-style-type: none;
+        }
+        
+        .tree-view li {
+            margin-bottom: 5px;
+        }
+        
+        .tree-node {
+            cursor: pointer;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        
+        .tree-node:hover {
+            background: #f0f0f0;
+        }
+        
+        .node-type {
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .json-viewer {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            overflow: auto;
+            max-height: 500px;
+        }
+        
+        .json-key {
+            color: #e83e8c;
+        }
+        
+        .json-string {
+            color: #28a745;
+        }
+        
+        .json-number {
+            color: #fd7e14;
+        }
+        
+        .json-boolean {
+            color: #dc3545;
+        }
+        
+        .json-null {
+            color: #6c757d;
+        }
+        
+        /* Estilos para el generador de componentes */
+        .component-generator {
+            margin-top: 20px;
+        }
+        
+        .component-preview {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .preview-header {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .preview-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        
+        .preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        
+        .preview-section {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            border: 1px solid #dee2e6;
+        }
+        
+        .preview-section h4 {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            margin: 0;
+            padding: 10px 15px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .figma-preview, .html-preview {
+            display: flex;
+            flex-direction: column;
+            height: 350px;
+        }
+        
+        .figma-image-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            overflow: auto;
+            background: #f0f0f0;
+            background-image: linear-gradient(45deg, #e0e0e0 25%, transparent 25%),
+                             linear-gradient(-45deg, #e0e0e0 25%, transparent 25%),
+                             linear-gradient(45deg, transparent 75%, #e0e0e0 75%),
+                             linear-gradient(-45deg, transparent 75%, #e0e0e0 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+        }
+        
+        .figma-component-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            background: white;
+        }
+        
+        .no-image-available {
+            padding: 30px;
+            text-align: center;
+            color: #999;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            background: white;
+        }
+        
+        #component-render {
+            flex: 1;
+            padding: 20px;
+            overflow: auto;
+            background: white;
+        }
+        
+        .preview-content {
+            padding: 20px;
+            min-height: 200px;
+            background: white;
+        }
+        
+        .code-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .code-tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .code-tab.active {
+            border-bottom-color: #667eea;
+            font-weight: 600;
+        }
+        
+        .code-panel {
+            display: none;
+            padding: 15px;
+            background: #282c34;
+            color: #abb2bf;
+            overflow-x: auto;
+            max-height: 500px;
+        }
+        
+        .code-panel.active {
+            display: block;
+        }
+        
+        .code-panel pre {
+            margin: 0;
+            white-space: pre-wrap;
+            font-family: 'Fira Code', Consolas, Monaco, 'Andale Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .copy-button {
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .copy-button:hover {
+            background: #5a6268;
+        }
+        
+        .generation-status {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .status-loading {
+            background: #cce5ff;
+            color: #004085;
+            border: 1px solid #b8daff;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Figma to Stencil</h1>
+            <p>Analiza tus archivos de Figma y genera componentes Stencil</p>
+        </div>
+
+        <div class="navigation">
+            <div class="nav-item active" onclick="showSection('dashboard')">
+                📊 Dashboard
+            </div>
+            <div class="nav-item" onclick="showSection('direct')">
+                🔗 URL Directa
+            </div>
+            <div class="nav-item" onclick="showSection('frames')">
+                🖼️ Frames
+            </div>
+            <div class="nav-item" onclick="showSection('component-selector')">
+                🎨 Componentes
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="section active">
+                <h2>📊 Dashboard</h2>
+                <div class="button-group">
+                    <button onclick="loadAccess()" class="btn-primary">📁 Ver Opciones</button>
+                    <button onclick="loadTeams()" class="btn-primary">🏢 Ver Equipos</button>
+                    <button onclick="showSection('direct')" class="btn-primary">🔗 Usar URL Directa</button>
+                    <button onclick="testConnection()" class="btn-secondary">🧪 Test Conexión</button>
+                </div>
+                <div id="dashboard-content">
+                    <p>Bienvenido al generador de componentes Stencil desde Figma.</p>
+                    <p><strong>¿Cómo empezar?</strong></p>
+                    <ol>
+                        <li>Ve a <strong>figma.com</strong> y abre cualquiera de tus archivos</li>
+                        <li>Copia la URL del archivo</li>
+                        <li>Haz clic en <strong>"🔗 Usar URL Directa"</strong></li>
+                        <li>Pega la URL y analiza el archivo</li>
+                    </ol>
+                    <!-- <div class="info-box" style="margin-top: 1.5rem;">
+                        <h4>💡 ¡Nuevo! Acceso a Equipos de Figma</h4>
+                        <p>Ahora puedes acceder directamente a los equipos y proyectos de tu cuenta de Figma haciendo clic en <strong>"🏢 Ver Equipos"</strong>.</p>
+                    </div> -->
+                </div>
+            </div>
+
+            <!-- Access Section -->
+            <div id="access" class="section">
+                <h2>📁 Mis Archivos</h2>
+                <div class="breadcrumb">
+                    Opciones de acceso a <span>archivos de Figma</span>
+                </div>
+                <div id="access-content" class="loading">
+                    Cargando opciones...
+                </div>
+            </div>
+
+            <!-- Teams Section -->
+            <div id="teams" class="section">
+                <h2>🏢 Mis Equipos</h2>
+                <div class="breadcrumb">
+                    Equipos y proyectos en <span>Figma</span>
+                </div>
+                <div class="button-group">
+                    <button onclick="loadAllAvailableTeams()" class="btn-primary">🔄 Ver Todos Mis Equipos</button>
+                    <button onclick="loadSpecificTeam('1507023165279092081')" class="btn-secondary">📂 Cargar Equipo Website</button>
+                </div>
+                <div id="teams-content" class="loading">
+                    Haz clic en "Ver Todos Mis Equipos" para ver los proyectos
+                </div>
+            </div>
+
+            <!-- Direct URL Section -->
+            <div id="direct" class="section">
+                <h2>🔗 Acceso Directo con URL</h2>
+                <div class="breadcrumb">
+                    Analizar archivo usando <span>URL directa</span>
+                </div>
+                
+                <div class="input-form">
+                    <h3>🔗 Pega la URL de tu archivo de Figma</h3>
+                    <p>Copia la URL completa desde la barra de direcciones de Figma:</p>
+                    <input type="text" id="figma-url-input" placeholder="https://www.figma.com/file/ABC123DEF456/NombreDelArchivo" />
+                    
+                    <p style="margin: 1rem 0; color: #666;">O si tienes solo el file_key:</p>
+                    <input type="text" id="figma-key-input" placeholder="ABC123DEF456" />
+                    
+                    <button onclick="analyzeDirectFile()" class="btn-primary" style="margin-top: 1rem;">
+                        🚀 Analizar Archivo
+                    </button>
+                    
+                    <div class="info-box">
+                        <h4>💡 ¿Cómo obtener la URL?</h4>
+                        <ol>
+                            <li>Ve a <strong>figma.com</strong></li>
+                            <li>Abre uno de tus archivos (ej: Cleo DS Beta, Design Libraries)</li>
+                            <li>Copia la URL completa de la barra de direcciones</li>
+                            <li>Pégala en el campo de arriba</li>
+                        </ol>
+                        <p><strong>Ejemplo de URL:</strong><br>
+                        <code>https://www.figma.com/file/ABC123DEF456/Cleo-DS-Beta</code></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Frames Section -->
+            <div id="frames" class="section">
+                <h2>🖼️ Páginas y Frames</h2>
+                <button onclick="goBack('direct')" class="back-button">← Volver</button>
+                <div id="frames-breadcrumb" class="breadcrumb"></div>
+                <div id="frames-content" class="loading">
+                    Usa "🔗 URL Directa" para analizar un archivo...
+                </div>
+            </div>
+
+            <!-- Nueva sección para visualizar contenidos del archivo -->
+            <div id="file-contents" class="section">
+                <h2>📋 Contenidos del Archivo</h2>
+                <button onclick="goBackFromFileContents()" class="back-button">← Volver</button>
+                <div id="file-contents-breadcrumb" class="breadcrumb">Selecciona un archivo para ver sus contenidos</div>
+                
+                <div id="file-contents-loading" class="loading" style="display: none;">
+                    Cargando contenidos del archivo...
+                </div>
+                
+                <div id="file-contents-error" class="error" style="display: none;"></div>
+                
+                <div id="file-contents-details" class="file-details-container">
+                    <!-- Aquí se mostrarán los detalles del archivo -->
+                </div>
+            </div>
+
+            <!-- Selector de Componentes -->
+            <div id="component-selector" class="section">
+                <h2>🎨 Selector de Componentes</h2>
+                <button onclick="goBack('file-contents')" class="back-button">← Volver</button>
+                <div id="component-selector-breadcrumb" class="breadcrumb">Selecciona los componentes a generar</div>
+                
+                <div class="actions-bar">
+                    <button onclick="fetchComponents()" class="btn-primary">
+                        🔄 Cargar Componentes
+                    </button>
+                    <button onclick="selectAllComponents()" id="select-all-btn" disabled class="btn-secondary">
+                        ✅ Seleccionar Todos
+                    </button>
+                    <button onclick="deselectAllComponents()" id="deselect-all-btn" disabled class="btn-secondary">
+                        ❌ Deseleccionar Todos
+                    </button>
+                    <button onclick="generateSelectedComponents()" id="generate-selected-btn" disabled class="btn-primary">
+                        🚀 Generar Seleccionados
+                    </button>
+                </div>
+
+                <div id="component-filter-container" style="margin-top: 20px; margin-bottom: 20px; display: none;">
+                    <input type="text" id="component-filter" placeholder="Filtrar componentes..." 
+                        style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
+                </div>
+                
+                <div id="component-selector-content">
+                    <div class="message-box">
+                        <p>📋 Haz clic en "Cargar Componentes" para ver los componentes disponibles en este archivo.</p>
+                    </div>
+                </div>
+                
+                <div id="component-selector-grid" class="component-grid" style="display: none;">
+                    <!-- Los componentes se cargarán aquí -->
+                </div>
+            </div>
+            
+            <!-- Nueva sección para el componente generado -->
+            <div id="component" class="section">
+                <h2>🧩 Generador de Componente</h2>
+                <button onclick="goBack('component-selector')" class="back-button">← Volver</button>
+                <div id="component-breadcrumb" class="breadcrumb">Selecciona un componente para generar</div>
+                
+                <div id="component-status" style="display:none"></div>
+                
+                <div id="component-content" class="component-generator">
+                    <p>Selecciona un componente en la sección "Componentes" para generar un componente Stencil.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let currentFile = null;
+        let currentTeam = null;
+
+        // Test connection with API
+        async function testConnection() {
+            console.log('Probando conexión con el API...');
+            const dashboard = document.getElementById('dashboard-content');
+            dashboard.innerHTML = '<div class="loading">Probando conexión...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    let statusClass = "success";
+                    if (!data.figma_configured || !data.claude_configured) {
+                        statusClass = "error";
+                    }
+                    
+                    dashboard.innerHTML = `
+                        <div class="${statusClass}">
+                            <h3>✅ Conexión exitosa</h3>
+                            <p><strong>Estado:</strong> ${data.status}</p>
+                            <p><strong>API Figma:</strong> ${data.figma_configured ? '✅ Configurado' : '❌ No configurado'}</p>
+                            <p><strong>API Claude:</strong> ${data.claude_configured ? '✅ Configurado' : '❌ No configurado'}</p>
+                            <p><strong>Mensaje:</strong> ${data.message}</p>
+                            <p><strong>Timestamp:</strong> ${data.timestamp}</p>
+                        </div>
+                    `;
+                } else {
+                    dashboard.innerHTML = `
+                        <div class="error">
+                            <h3>❌ Error de conexión</h3>
+                            <p>No se pudo conectar con el API. Código: ${response.status}</p>
+                            <p>Mensaje: ${data.detail || 'Error desconocido'}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error en testConnection:', error);
+                dashboard.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Error de conexión</h3>
+                        <p>No se pudo conectar con el servidor. Asegúrate de que el backend esté en ejecución.</p>
+                        <p>URL del API: ${API_BASE}</p>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Navigation
+        function showSection(sectionId) {
+            console.log('showSection called with:', sectionId);
+            
+            // Update nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Find and activate the correct nav item
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                if ((sectionId === 'dashboard' && item.textContent.includes('Dashboard')) ||
+                    (sectionId === 'direct' && item.textContent.includes('URL Directa')) ||
+                    (sectionId === 'frames' && item.textContent.includes('Frames')) ||
+                    (sectionId === 'component-selector' && item.textContent.includes('Componentes'))) {
+                    item.classList.add('active');
+                }
+            });
+
+            // Update sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            } else {
+                console.error('Section not found:', sectionId);
+            }
+        }
+
+        function goBack(sectionId) {
+            console.log('goBack called with:', sectionId);
+            showSection(sectionId);
+        }
+
+        // API calls
+        async function makeRequest(endpoint) {
+            console.log('Making request to:', endpoint);
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`);
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Response error:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                const data = await response.json();
+                console.log('Response data:', data);
+                return data;
+            } catch (error) {
+                console.error('API request failed:', error);
+                throw error;
+            }
+        }
+
+        // La función loadTeams ya no es necesaria
+        async function loadTeams() {
+            console.log('loadTeams redirigido a URL directa');
+            showSection('direct');
+        }
+        
+        async function loadAllAvailableTeams() {
+            try {
+                const content = document.getElementById('teams-content');
+                content.innerHTML = '<div class="loading">Obteniendo todos los equipos disponibles...</div>';
+
+                // Añadir un timestamp para evitar caché
+                const result = await makeRequest(`/test/all-teams?t=${new Date().getTime()}`);
+                console.log('Teams result:', result);
+                
+                if (result.status === 'success') {
+                    displayAvailableTeams(result.data);
+                } else if (result.status === 'warning') {
+                    content.innerHTML = `
+                        <div class="info-box">
+                            <h4>ℹ️ ${result.message}</h4>
+                            <p>No se encontraron equipos disponibles para tu usuario.</p>
+                            <p>Puedes probar con el equipo específico conocido:</p>
+                            <button onclick="loadSpecificTeam('1507023165279092081')" class="btn-primary" style="margin-top: 1rem;">
+                                📂 Cargar Equipo Website
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    content.innerHTML = `<div class="error">Error: ${result.message || 'Error desconocido'}</div>`;
+                }
+            } catch (error) {
+                console.error('loadAllAvailableTeams error:', error);
+                document.getElementById('teams-content').innerHTML = 
+                    `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+        
+        function displayAvailableTeams(teams) {
+            const content = document.getElementById('teams-content');
+            
+            if (!teams || teams.length === 0) {
+                content.innerHTML = `
+                    <div class="info-box">
+                        <h4>ℹ️ No se encontraron equipos</h4>
+                        <p>No se encontraron equipos disponibles para tu cuenta.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `
+                <div class="info-box" style="margin-bottom: 20px;">
+                    <h4>✅ Equipos encontrados: ${teams.length}</h4>
+                    <p>Estos son todos los equipos a los que tienes acceso con tu usuario actual.</p>
+                </div>
+            `;
+            
+            teams.forEach(team => {
+                html += `
+                    <div class="team-section">
+                        <div class="team-header">
+                            <div class="team-icon">🏢</div>
+                            <div class="team-name">${team.name}</div>
+                        </div>
+                        <p style="color: #666; margin-bottom: 10px;">${team.description || 'Sin descripción'}</p>
+                        <p style="font-size: 0.8rem; color: #777;">ID: ${team.id}</p>
+                        <div class="button-group" style="margin-top: 10px;">
+                            <button onclick="loadSpecificTeam('${team.id}')" class="btn-primary">
+                                📂 Ver Proyectos
+                            </button>
+                            <a href="https://www.figma.com/files/team/${team.id}" target="_blank" class="btn-secondary" style="text-decoration: none;">
+                                🔗 Abrir en Figma
+                            </a>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            content.innerHTML = html;
+        }
+        
+        async function loadSpecificTeam(teamId) {
+            try {
+                const content = document.getElementById('teams-content');
+                content.innerHTML = '<div class="loading">Cargando equipo y proyectos...</div>';
+
+                const result = await makeRequest(`/test/specific-team/${teamId}`);
+
+                if (result.status === 'success' && result.data.success) {
+                    currentTeam = {
+                        id: teamId,
+                        name: `Equipo ${teamId}`
+                    };
+                    displayTeamProjects(result.data);
+                } else {
+                    content.innerHTML = `<div class="error">Error cargando equipo: ${JSON.stringify(result.data?.error || 'Desconocido')}</div>`;
+                }
+            } catch (error) {
+                console.error('loadSpecificTeam error:', error);
+                document.getElementById('teams-content').innerHTML = 
+                    `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function loadAllTeams() {
+            try {
+                const content = document.getElementById('teams-content');
+                content.innerHTML = '<div class="loading">Buscando todos los equipos...</div>';
+
+                const result = await makeRequest('/test/teams');
+
+                if (result.status === 'success') {
+                    displayAllTeams(result.data);
+                } else {
+                    content.innerHTML = '<div class="error">Error cargando equipos</div>';
+                }
+            } catch (error) {
+                console.error('loadAllTeams error:', error);
+                document.getElementById('teams-content').innerHTML = 
+                    `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        function displayTeamProjects(data) {
+            const content = document.getElementById('teams-content');
+            content.innerHTML = ''; // Limpiar contenido actual
+
+            if (!data.projects || data.projects.length === 0) {
+                content.innerHTML = '<div class="info-box">No hay proyectos disponibles en este equipo.</div>';
+                return;
+            }
+
+            let html = '<div class="grid">';
+
+            data.projects.forEach(project => {
+                html += `
+                    <div class="project-card" onclick="loadProjectFiles('${project.id}')">
+                        <h3>${project.name}</h3>
+                        <p style="color: #666;">ID: ${project.id}</p>
+                        <div class="meta">${project.description || 'Sin descripción'}</div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            content.innerHTML = html;
+        }
+
+        function displayAllTeams(data) {
+            const content = document.getElementById('teams-content');
+            content.innerHTML = ''; // Limpiar contenido actual
+
+            if (!data || data.length === 0) {
+                content.innerHTML = '<div class="info-box">No se encontraron equipos.</div>';
+                return;
+            }
+
+            let html = '<div class="grid">';
+
+            data.forEach(team => {
+                html += `
+                    <div class="team-section">
+                        <div class="team-header">
+                            <div class="team-icon">🏢</div>
+                            <div class="team-name">${team.name}</div>
+                        </div>
+                        <p style="color: #666; margin-bottom: 10px;">${team.description || 'Sin descripción'}</p>
+                        <p style="font-size: 0.8rem; color: #777;">ID: ${team.id}</p>
+                        <button onclick="loadSpecificTeam('${team.id}')" class="btn-primary" style="margin-top: 10px;">
+                            📂 Ver Proyectos
+                        </button>
+                        <a href="https://www.figma.com/files/team/${team.id}" target="_blank" class="btn-secondary" style="margin-left: 10px; display: inline-block; text-decoration: none; margin-top: 10px;">
+                            🔗 Abrir en Figma
+                        </a>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            content.innerHTML = html;
+        }
+
+        async function loadProjectFiles(projectId) {
+            try {
+                const content = document.getElementById('teams-content');
+                const projectSection = content.querySelector(`.project-card[onclick*="${projectId}"]`);
+                
+                if (projectSection) {
+                    projectSection.innerHTML += '<div class="loading" style="margin-top: 1rem;">Cargando archivos...</div>';
+                }
+
+                const result = await makeRequest(`/figma/projects/${projectId}/files`);
+
+                if (result.status === 'success') {
+                    displayProjectFiles(projectId, result.data);
+                } else {
+                    if (projectSection) {
+                        projectSection.innerHTML = `<div class="error">Error cargando archivos del proyecto</div>`;
+                    }
+                }
+            } catch (error) {
+                console.error('loadProjectFiles error:', error);
+                const projectSection = document.querySelector(`.project-card[onclick*="${projectId}"]`);
+                if (projectSection) {
+                    projectSection.innerHTML += `<div class="error">Error: ${error.message}</div>`;
+                }
+            }
+        }
+
+        function displayProjectFiles(projectId, files) {
+            const projectSection = document.querySelector(`.project-card[onclick*="${projectId}"]`);
+            if (!projectSection) return;
+
+            // Mantener el título original
+            const projectTitle = projectSection.querySelector('h3').outerHTML;
+            
+            if (!files || files.length === 0) {
+                projectSection.innerHTML = `
+                    ${projectTitle}
+                    <p style="color: #666;">No se encontraron archivos en este proyecto</p>
+                `;
+                return;
+            }
+
+            let filesHtml = `
+                ${projectTitle}
+                <p style="margin: 0.5rem 0; color: #666;">Archivos encontrados: ${files.length}</p>
+                <div style="margin-top: 1rem;">
+            `;
+
+            files.forEach(file => {
+                filesHtml += `
+                    <div style="padding: 0.5rem; background: white; border-radius: 6px; margin-bottom: 0.5rem; cursor: pointer;"
+                         onclick="analyzeFileFromProject('${file.key}', '${file.name}')">
+                        <div style="font-weight: 600;">📄 ${file.name}</div>
+                        <div style="font-size: 0.8rem; color: #777;">Key: ${file.key}</div>
+                    </div>
+                `;
+            });
+
+            filesHtml += '</div>';
+            projectSection.innerHTML = filesHtml;
+            projectSection.setAttribute('onclick', ''); // Remover onclick al expandir
+        }
+
+        async function analyzeFileFromProject(fileKey, fileName) {
+            try {
+                document.getElementById('figma-key-input').value = fileKey;
+                showSection('direct');
+                alert(`Se ha copiado la clave del archivo "${fileName}" al campo de entrada. Haz clic en "Analizar Archivo" para continuar.`);
+            } catch (error) {
+                console.error('analyzeFileFromProject error:', error);
+                alert(`Error preparando el análisis del archivo: ${error.message}`);
+            }
+        }
+
+        // Load access options
+        // La función loadAccess ya no es necesaria
+        async function loadAccess() {
+            console.log('loadAccess redirigido a URL directa');
+            showSection('direct');
+        }
+
+        function displayAccess(accessItems) {
+            console.log('displayAccess called with:', accessItems);
+            const content = document.getElementById('access-content');
+
+            if (!accessItems || accessItems.length === 0) {
+                content.innerHTML = `
+                    <div class="info-box">
+                        <h4>ℹ️ No se encontraron archivos automáticamente</h4>
+                        <p>La API de Figma no devuelve archivos recientes para tu cuenta.</p>
+                        <p><strong>Solución:</strong> Usa <strong>"🔗 URL Directa"</strong> para acceder a tus archivos específicos.</p>
+                        <button onclick="showSection('direct')" class="btn-primary" style="margin-top: 1rem;">
+                            🔗 Ir a URL Directa
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            const grid = document.createElement('div');
+            grid.className = 'grid';
+
+            accessItems.forEach(item => {
+                console.log('Creating card for access item:', item);
+                const card = document.createElement('div');
+                card.className = 'card';
+                
+                if (item.type === 'direct_url') {
+                    card.onclick = () => showSection('direct');
+                } else {
+                    card.onclick = () => alert('Los ejemplos son solo demostrativos. Usa "🔗 URL Directa" para archivos reales.');
+                }
+
+                card.innerHTML = `
+                    <h3>${item.name}</h3>
+                    <p>Tipo: ${item.type}</p>
+                    <div class="meta">${item.description}</div>
+                `;
+
+                grid.appendChild(card);
+            });
+
+            content.innerHTML = '';
+            content.appendChild(grid);
+        }
+
+        // Direct file analysis
+        async function analyzeDirectFile() {
+            try {
+                const urlInput = document.getElementById('figma-url-input').value.trim();
+                const keyInput = document.getElementById('figma-key-input').value.trim();
+                
+                if (!urlInput && !keyInput) {
+                    alert('Por favor, ingresa una URL o file_key de Figma');
+                    return;
+                }
+                
+                const requestData = {};
+                if (urlInput) {
+                    requestData.file_url = urlInput;
+                } else {
+                    requestData.file_key = keyInput;
+                }
+                
+                const content = document.getElementById('frames-content');
+                const breadcrumb = document.getElementById('frames-breadcrumb');
+                
+                content.innerHTML = '<div class="loading">Analizando archivo de Figma...</div>';
+                breadcrumb.innerHTML = `Analizando archivo desde <span>URL directa</span>`;
+                showSection('frames');
+                
+                const response = await fetch(`${API_BASE}/figma/file-direct`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const responseText = await response.text();
+                let result;
+                
+                try {
+                    result = JSON.parse(responseText);
+                } catch (e) {
+                    throw new Error(`Respuesta inválida: ${responseText.substring(0, 100)}...`);
+                }
+                
+                if (!response.ok) {
+                    let errorDetail = result.detail || "Error desconocido";
+                    throw new Error(`HTTP ${response.status}: ${errorDetail}`);
+                }
+                
+                if (result.status === 'success') {
+                    currentFile = { 
+                        key: result.data.file_key, 
+                        name: result.data.file_name 
+                    };
+                    
+                    breadcrumb.innerHTML = `Archivo: <span>${result.data.file_name}</span>`;
+                    displayFrames(result.data);
+                    
+                    // Añadir botón para ver contenidos del archivo
+                    const viewContentsBtn = document.createElement('button');
+                    viewContentsBtn.className = 'btn-primary';
+                    viewContentsBtn.style.marginTop = '15px';
+                    viewContentsBtn.innerHTML = '📋 Ver Contenidos del Archivo';
+                    viewContentsBtn.onclick = () => loadFileContents(result.data.file_key, result.data.file_name);
+                    
+                    document.getElementById('frames-content').prepend(viewContentsBtn);
+                } else {
+                    content.innerHTML = `<div class="error">Error: ${JSON.stringify(result)}</div>`;
+                }
+                
+            } catch (error) {
+                console.error('analyzeDirectFile error:', error);
+                document.getElementById('frames-content').innerHTML = `
+                    <div class="error">
+                        <h3>❌ Error al analizar el archivo</h3>
+                        <p>${error.message}</p>
+                        
+                        <div class="info-box" style="margin-top: 15px;">
+                            <h4>💡 Soluciones posibles:</h4>
+                            <ul style="margin-top: 10px; padding-left: 20px;">
+                                <li>Verifica que la URL sea correcta</li>
+                                <li>Intenta con el formato: <code>https://www.figma.com/file/ABC123/NombreArchivo</code></li>
+                                <li>Copia directamente el ID del archivo (la parte después de /file/ o /design/)</li>
+                                <li>Asegúrate que tienes permisos para acceder al archivo</li>
+                            </ul>
+                        </div>
+                        
+                        <button class="btn-primary" style="margin-top: 15px;" onclick="showSection('direct')">
+                            ↩️ Volver a intentar
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function displayFrames(data) {
+            const content = document.getElementById('frames-content');
+
+            if (!data.pages || data.pages.length === 0) {
+                content.innerHTML = '<p>No se encontraron páginas en este archivo.</p>';
+                return;
+            }
+
+            let html = '';
+
+            data.pages.forEach(page => {
+                html += `
+                    <div style="margin-bottom: 2rem;">
+                        <h3>📄 ${page.name}</h3>
+                        <p style="color: #666; margin-bottom: 1rem;">${page.frames_count} frames encontrados</p>
+
+                        <div class="grid">
+                `;
+
+                if (page.frames && page.frames.length > 0) {
+                    page.frames.forEach(frame => {
+                        html += `
+                            <div class="frame-card" onclick="selectFrame('${data.file_key}', '${page.id}', '${frame.id}', '${frame.name}')">
+                                <h4>🖼️ ${frame.name}</h4>
+                                <div class="dimensions">${frame.width}×${frame.height}px</div>
+                                <p style="font-size: 0.8rem; color: #666; margin-top: 0.5rem;">ID: ${frame.id}</p>
+                            </div>
+                        `;
+                    });
+                } else {
+                    html += '<p style="grid-column: 1/-1; text-align: center; color: #999;">No hay frames en esta página</p>';
+                }
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            content.innerHTML = html;
+        }
+
+        function selectFrame(fileKey, pageId, frameId, frameName) {
+            currentFile = { key: fileKey, name: currentFile?.name || "Archivo" };
+            currentFrameId = frameId;
+            currentPageId = pageId;
+            
+            // Mantener en la sección de componentes pero mostrar el resultado
+            const componentSelector = document.getElementById('component-selector');
+            componentSelector.innerHTML = `
+                <h2>🧩 Generador de Componente</h2>
+                <button onclick="location.reload()" class="back-button">← Volver a componentes</button>
+                <div class="breadcrumb">Generando componente para frame: <span>${frameName}</span> en <span>${currentFile.name}</span></div>
+                
+                <div id="component-status" class="generation-status status-loading">
+                    <h3>⏳ Generando componente...</h3>
+                    <p>Claude AI está analizando el diseño y generando el código. Este proceso puede tardar entre 15-30 segundos.</p>
+                </div>
+                
+                <div id="component-content" class="component-generator">
+                </div>
+            `;
+            
+            // Limpiar contenido anterior
+            document.getElementById('component-content').innerHTML = '';
+            
+            // Llamar al API para generar el componente
+            generateComponent(fileKey, frameId, frameName);
+        }
+        
+        // Generar componente con Claude AI
+        async function generateComponent(fileKey, frameId, frameName) {
+            try {
+                console.log(`Generando componente para frame: ${frameName} (${frameId})`);
+                
+                const response = await fetch(`${API_BASE}/figma/generate-component`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        file_key: fileKey,
+                        frame_id: frameId,
+                        frame_name: frameName
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Error HTTP ${response.status}: ${errorText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    // Actualizar estado
+                    const statusEl = document.getElementById('component-status');
+                    statusEl.className = 'generation-status status-success';
+                    statusEl.innerHTML = `
+                        <h3>✅ Componente generado exitosamente!</h3>
+                        <p>Claude AI ha generado el código para el componente "${frameName}".</p>
+                    `;
+                    
+                    // Mostrar los resultados
+                    console.log("Datos recibidos del componente:", result.data);
+                    console.log("URL de imagen:", result.data.image_url);
+                    displayGeneratedComponent(result.data, frameName);
+                } else {
+                    throw new Error(result.message || 'Error desconocido');
+                }
+                
+            } catch (error) {
+                console.error('Error generando componente:', error);
+                const statusEl = document.getElementById('component-status');
+                statusEl.className = 'generation-status status-error';
+                
+                // Verificar el tipo de error
+                let errorTitle = "❌ Error generando el componente";
+                let errorMsg = error.message;
+                let errorType = "general";
+                let errorSolution = "Intenta con otro componente o contacta al administrador del sistema.";
+                
+                // Errores de límite de tasa (429)
+                if (error.message && error.message.includes('429')) {
+                    errorTitle = "⚠️ Límite de solicitudes alcanzado";
+                    errorType = "rate_limit";
+                    errorMsg = "Se ha alcanzado el límite de solicitudes a la API de Claude.";
+                    errorSolution = "Por favor, espera unos minutos e inténtalo de nuevo. Si el problema persiste, intenta con un componente más simple.";
+                } 
+                // Errores de autenticación (401)
+                else if (error.message && error.message.includes('401')) {
+                    errorTitle = "🔑 Error de autenticación";
+                    errorType = "auth";
+                    errorMsg = "Error de autenticación con la API de Claude.";
+                    errorSolution = "Verifica que la API key de Claude sea correcta y esté vigente.";
+                }
+                // Errores de servidor (500) 
+                else if (error.message && error.message.includes('500')) {
+                    errorTitle = "🔧 Error en el servidor";
+                    errorType = "server";
+                    errorMsg = "Ha ocurrido un error procesando tu solicitud en el servidor.";
+                    errorSolution = "El componente puede ser demasiado complejo o hay un problema temporal en el servicio. Intenta con un componente más simple.";
+                }
+                
+                statusEl.innerHTML = `
+                    <h3>${errorTitle}</h3>
+                    <p>${errorMsg}</p>
+                    ${errorType === 'rate_limit' ? `
+                    <div class="info-box" style="margin: 10px 0;">
+                        <h4>Posibles causas:</h4>
+                        <ul>
+                            <li>Se hacen demasiadas solicitudes en poco tiempo</li>
+                            <li>Se envía un frame muy complejo con muchos elementos</li>
+                            <li>La cuota mensual del API ha sido alcanzada</li>
+                        </ul>
+                    </div>` : ''}
+                    <p><strong>Solución recomendada:</strong> ${errorSolution}</p>
+                    <p><strong>Detalles técnicos:</strong> <code>${error.message}</code></p>
+                    <div class="button-group" style="margin-top: 15px;">
+                        <button onclick="goBack('frames')" class="btn-primary">
+                            ← Volver y seleccionar otro frame
+                        </button>
+                        <button onclick="testConnection()" class="btn-secondary">
+                            🔄 Verificar estado del servidor
+                        </button>
+                    </div>
+                `;
+            }
+        }
+        
+        // Mostrar el componente generado
+        function displayGeneratedComponent(data, frameName) {
+            const containerEl = document.getElementById('component-content');
+            const componentName = data.component_name || frameName.toLowerCase().replace(/\s+/g, '-');
+            
+            // Estructura básica para mostrar el código
+            let html = `
+                <div class="component-preview">
+                    <div class="preview-header">
+                        <h3>${componentName}</h3>
+                    </div>
+                    <div class="preview-container">
+                        <div class="preview-section figma-preview">
+                            <div class="figma-image-container">
+                                ${data.image_url ? 
+                                    `<img src="${data.image_url}" alt="${componentName}" class="figma-component-image" />` : 
+                                    '<div class="no-image-available">No hay imagen disponible</div>'}
+                            </div>
+                        </div>
+                        <div class="preview-section html-preview">
+                            <h4>Previsualización HTML</h4>
+                            <div id="component-render">
+                                ${data.html_code || '<p>No hay previsualización disponible</p>'}
+                            </div>
+                            <style>
+                                ${data.css_code || ''}
+                            </style>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="code-tabs">
+                    <div class="code-tab active" onclick="switchCodeTab('html')">HTML</div>
+                    <div class="code-tab" onclick="switchCodeTab('css')">CSS</div>
+                    <div class="code-tab" onclick="switchCodeTab('stencil')">Stencil</div>
+                    <div class="code-tab" onclick="switchCodeTab('storybook')">Storybook</div>
+                </div>
+                
+                <div id="html-code" class="code-panel active">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span>HTML</span>
+                        <button class="copy-button" onclick="copyCode('html-code-content')">Copiar</button>
+                    </div>
+                    <pre id="html-code-content">${escapeHtml(data.html_code || '')}</pre>
+                </div>
+                
+                <div id="css-code" class="code-panel">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span>CSS</span>
+                        <button class="copy-button" onclick="copyCode('css-code-content')">Copiar</button>
+                    </div>
+                    <pre id="css-code-content">${escapeHtml(data.css_code || '')}</pre>
+                </div>
+                
+                <div id="stencil-code" class="code-panel">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span>Stencil Component (TSX)</span>
+                        <button class="copy-button" onclick="copyCode('stencil-code-content')">Copiar</button>
+                    </div>
+                    <pre id="stencil-code-content">${escapeHtml(data.stencil_code || '')}</pre>
+                </div>
+                
+                <div id="storybook-code" class="code-panel">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span>Storybook</span>
+                        <button class="copy-button" onclick="copyCode('storybook-code-content')">Copiar</button>
+                    </div>
+                    <pre id="storybook-code-content">${escapeHtml(data.storybook_code || '')}</pre>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <h3>Instrucciones de uso</h3>
+                    <ol>
+                        <li>Copia el código Stencil y guárdalo como <code>${componentName}.tsx</code></li>
+                        <li>Copia el CSS dentro del tag <code>&lt;style&gt;</code> del componente</li>
+                        <li>Copia el código Storybook en un archivo separado <code>${componentName}.stories.tsx</code></li>
+                        <li>Importa el componente en tu proyecto Stencil</li>
+                    </ol>
+                </div>
+            `;
+            
+            containerEl.innerHTML = html;
+        }
+        
+        // Cambiar entre tabs de código
+        function switchCodeTab(tabName) {
+            currentCodeTab = tabName;
+            
+            // Actualizar tabs
+            document.querySelectorAll('.code-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.textContent.toLowerCase().includes(tabName.toLowerCase())) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            // Actualizar paneles
+            document.querySelectorAll('.code-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            document.getElementById(`${tabName}-code`).classList.add('active');
+        }
+        
+        // Función para escapar HTML
+        function escapeHtml(unsafe) {
+            return unsafe
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+        
+        // Copiar código al portapapeles
+        function copyCode(elementId) {
+            const codeElement = document.getElementById(elementId);
+            const textToCopy = codeElement.textContent;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                // Feedback visual
+                const copyBtn = codeElement.previousElementSibling.querySelector('.copy-button');
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = '✓ Copiado!';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('Error al copiar el código:', err);
+                alert('Error al copiar el código. Intenta seleccionarlo manualmente.');
+            });
+        }
+        
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            console.log('Figma to Stencil Generator loaded - User: cleodisenobg - 2025-08-16 07:18:21');
+        });
+
+        // Variables para contenido de archivos
+        let currentFileDetails = null;
+        let currentContentTab = 'structure';
+
+        // Función para volver desde la vista de contenidos del archivo
+        function goBackFromFileContents() {
+            if (currentFile) {
+                showSection('frames');
+            } else {
+                showSection('direct');
+            }
+        }
+
+        // Cargar contenidos detallados de un archivo
+        async function loadFileContents(fileKey, fileName) {
+            try {
+                // Mostrar sección de frames directamente
+                showSection('frames');
+                
+                // Actualizar interfaz
+                const framesSection = document.getElementById('frames');
+                const loading = document.createElement('div');
+                loading.className = 'loading';
+                loading.textContent = 'Cargando detalles del archivo...';
+                framesSection.appendChild(loading);
+                
+                // Hacer la petición al API
+                const response = await fetch(`${API_BASE}/figma/files/${fileKey}/details`);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Error HTTP ${response.status}: ${errorText}`);
+                }
+                
+                const result = await response.json();
+                
+                // Ocultar loading
+                document.getElementById('file-contents-loading').style.display = 'none';
+                
+                if (result.status === 'success') {
+                    currentFileDetails = result.data;
+                    displayFileContents(currentFileDetails);
+                } else {
+                    throw new Error(result.message || 'Error desconocido');
+                }
+                
+            } catch (error) {
+                console.error('Error cargando contenidos del archivo:', error);
+                document.getElementById('file-contents-loading').style.display = 'none';
+                const errorElement = document.getElementById('file-contents-error');
+                errorElement.style.display = 'block';
+                errorElement.innerHTML = `<h3>❌ Error al cargar los contenidos</h3><p>${error.message}</p>`;
+            }
+        }
+        
+        // Mostrar contenidos del archivo
+        function displayFileContents(fileDetails) {
+            const container = document.getElementById('file-contents-details');
+            
+            // Construir cabecera del archivo
+            let html = `
+                <div class="file-header">
+                    <div class="file-header-icon">📄</div>
+                    <div class="file-header-info">
+                        <div class="file-header-name">${fileDetails.file_name}</div>
+                        <div class="file-header-meta">
+                            <strong>ID:</strong> ${fileDetails.file_key} | 
+                            <strong>Versión:</strong> ${fileDetails.version} | 
+                            <strong>Modificado:</strong> ${new Date(fileDetails.last_modified).toLocaleString()}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="content-tabs">
+                    <div class="content-tab ${currentContentTab === 'structure' ? 'active' : ''}" 
+                         onclick="switchContentTab('structure')">
+                        🗂️ Estructura
+                    </div>
+                    <div class="content-tab ${currentContentTab === 'components' ? 'active' : ''}" 
+                         onclick="switchContentTab('components')">
+                        🧩 Componentes <span class="badge">${fileDetails.components ? fileDetails.components.length : 0}</span>
+                    </div>
+                    <div class="content-tab ${currentContentTab === 'styles' ? 'active' : ''}" 
+                         onclick="switchContentTab('styles')">
+                        🎨 Estilos <span class="badge">${fileDetails.styles ? fileDetails.styles.length : 0}</span>
+                    </div>
+                    <div class="content-tab ${currentContentTab === 'json' ? 'active' : ''}" 
+                         onclick="switchContentTab('json')">
+                        📊 JSON
+                    </div>
+                </div>
+            `;
+            
+            // Panel de estructura
+            html += `
+                <div id="structure-panel" class="content-panel ${currentContentTab === 'structure' ? 'active' : ''}">
+                    <h3>🗂️ Estructura del archivo</h3>
+                    <p>El archivo contiene <strong>${fileDetails.pages.length}</strong> páginas:</p>
+                    <ul class="tree-view">
+            `;
+            
+            fileDetails.pages.forEach(page => {
+                html += `
+                    <li>
+                        <div class="tree-node">
+                            <span class="node-type">PÁGINA:</span> ${page.name} 
+                            <span style="color:#999;">(${page.frames_count} frames)</span>
+                        </div>
+                        <ul>
+                `;
+                
+                if (page.frames && page.frames.length > 0) {
+                    page.frames.forEach(frame => {
+                        html += `
+                            <li>
+                                <div class="tree-node" onclick="selectFrame('${fileDetails.file_key}', '${page.id}', '${frame.id}', '${frame.name}')">
+                                    <span class="node-type">FRAME:</span> ${frame.name} 
+                                    <span style="color:#999;">(${frame.width}×${frame.height}px)</span>
+                                </div>
+                            </li>
+                        `;
+                    });
+                } else {
+                    html += `<li><em>No hay frames en esta página</em></li>`;
+                }
+                
+                html += `
+                        </ul>
+                    </li>
+                `;
+            });
+            
+            html += `
+                    </ul>
+                </div>
+            `;
+            
+            // Panel de componentes
+            html += `
+                <div id="components-panel" class="content-panel ${currentContentTab === 'components' ? 'active' : ''}">
+                    <h3>🧩 Componentes en el archivo</h3>
+            `;
+            
+            if (fileDetails.components && fileDetails.components.length > 0) {
+                html += `
+                    <p>Este archivo contiene ${fileDetails.components.length} componentes:</p>
+                    
+                    <div class="component-actions">
+                        <button onclick="navigateToComponentSelector()" class="btn-primary">
+                            🎨 Ver y Seleccionar Componentes
+                        </button>
+                    </div>
+                `;
+                
+                // Mostrar una vista previa de los primeros 10 componentes
+                const previewComponents = fileDetails.components.slice(0, 10);
+                
+                previewComponents.forEach(component => {
+                    html += `
+                        <div class="component-card">
+                            <strong>${component.name || 'Componente sin nombre'}</strong>
+                            <div>ID: ${component.node_id || component.key || 'N/A'}</div>
+                            <div>Tipo: ${component.component_set_name || 'Componente individual'}</div>
+                        </div>
+                    `;
+                });
+                
+                // Si hay más de 10 componentes, mostrar un mensaje
+                if (fileDetails.components.length > 10) {
+                    html += `
+                        <div class="info-box" style="margin-top: 15px;">
+                            <p>Se muestran los primeros 10 componentes de ${fileDetails.components.length} totales.</p>
+                            <p>Para ver todos los componentes y seleccionarlos, haz clic en el botón "Ver y Seleccionar Componentes".</p>
+                        </div>
+                    `;
+                }
+            } else {
+                html += `<p>Este archivo no contiene componentes.</p>`;
+            }
+            
+            html += `</div>`;
+            
+            // Función para navegar al selector de componentes
+            window.navigateToComponentSelector = function() {
+                // Guardar los detalles del archivo actual
+                currentFile = {
+                    key: fileDetails.file_key,
+                    name: fileDetails.file_name
+                };
+                
+                // Actualizar el breadcrumb del selector de componentes
+                const breadcrumb = document.getElementById('component-selector-breadcrumb');
+                breadcrumb.innerHTML = `
+                    Componentes del archivo <span>${fileDetails.file_name}</span>
+                    <span style="font-size: 0.8rem; color: #666; margin-left: 10px;">(${fileDetails.file_key})</span>
+                `;
+                
+                // Ir a la sección del selector de componentes
+                showSection('component-selector');
+            };
+            
+            // Panel de estilos
+            html += `
+                <div id="styles-panel" class="content-panel ${currentContentTab === 'styles' ? 'active' : ''}">
+                    <h3>🎨 Estilos en el archivo</h3>
+            `;
+            
+            if (fileDetails.styles && fileDetails.styles.length > 0) {
+                html += `<p>Este archivo contiene ${fileDetails.styles.length} estilos:</p>`;
+                
+                // Agrupar estilos por tipo
+                const stylesByType = {};
+                fileDetails.styles.forEach(style => {
+                    const styleType = style.style_type || 'OTROS';
+                    if (!stylesByType[styleType]) {
+                        stylesByType[styleType] = [];
+                    }
+                    stylesByType[styleType].push(style);
+                });
+                
+                // Mostrar estilos agrupados
+                Object.keys(stylesByType).forEach(styleType => {
+                    html += `<h4>${styleType}</h4><div>`;
+                    
+                    stylesByType[styleType].forEach(style => {
+                        // Para estilos de color, mostrar una muestra de color
+                        let colorSample = '';
+                        if (styleType === 'FILL' && style.description) {
+                            try {
+                                const colorMatch = style.description.match(/#[0-9A-Fa-f]{6}/);
+                                if (colorMatch) {
+                                    colorSample = `<span class="color-sample" style="background-color: ${colorMatch[0]}"></span>`;
+                                }
+                            } catch (e) {}
+                        }
+                        
+                        html += `<span class="style-pill">${colorSample}${style.name || 'Sin nombre'}</span>`;
+                    });
+                    
+                    html += `</div>`;
+                });
+            } else {
+                html += `<p>Este archivo no contiene estilos definidos.</p>`;
+            }
+            
+            html += `</div>`;
+            
+            // Panel de JSON
+            html += `
+                <div id="json-panel" class="content-panel ${currentContentTab === 'json' ? 'active' : ''}">
+                    <h3>📊 Datos JSON completos</h3>
+                    <div class="json-viewer">
+                        <pre>${formatJSON(fileDetails)}</pre>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+        
+        // Cambiar entre tabs de contenido
+        function switchContentTab(tabName) {
+            currentContentTab = tabName;
+            
+            // Actualizar tabs
+            document.querySelectorAll('.content-tab').forEach(tab => {
+                if (tab.textContent.includes(tabName.charAt(0).toUpperCase() + tabName.slice(1))) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            // Actualizar paneles
+            document.querySelectorAll('.content-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            document.getElementById(`${tabName}-panel`).classList.add('active');
+        }
+        
+        // Formatear JSON para mostrarlo con colores
+        function formatJSON(obj) {
+            const jsonString = JSON.stringify(obj, null, 2);
+            return jsonString.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function(match) {
+                let cls = 'json-number';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) {
+                        cls = 'json-key';
+                    } else {
+                        cls = 'json-string';
+                    }
+                } else if (/true|false/.test(match)) {
+                    cls = 'json-boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'json-null';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+        }
+    </script>
+    <script src="component-selector.js"></script>
+</body>
+</html>

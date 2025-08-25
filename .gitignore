@@ -1,0 +1,54 @@
+# Archivos de configuración de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Entornos virtuales
+venv/
+ENV/
+env/
+.env/
+.venv/
+
+# Archivos con secretos
+.env
+*.env
+
+# Archivos de IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+.DS_Store
+
+# Archivos generados
+generated-components/
+
+# Archivos temporales
+*.log
+*.tmp
+.cache/
+temp_*
